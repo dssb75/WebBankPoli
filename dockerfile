@@ -14,3 +14,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "ApiGateway.dll"]
+
+# Exponer el puerto
+EXPOSE 5000
+
+# Ejecutar en 0.0.0.0 usando la variable PORT
+ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
+ENTRYPOINT ["dotnet", "ApiGateway.dll"]
