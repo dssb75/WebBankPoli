@@ -1,0 +1,93 @@
+<html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Manual de Uso - API con Balanceo de Carga</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }
+    h1, h2, h3 { color: #2c3e50; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; }
+    pre { background: #f4f4f4; padding: 10px; border-radius: 6px; overflow-x: auto; }
+    .box { border: 1px solid #ccc; padding: 12px; margin: 10px 0; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Manual de Uso - API con Balanceo de Carga</h1>
+  <p>Este documento describe el funcionamiento de la solución de <strong>AccountService</strong> y <strong>AccountServiceReplica</strong> con balanceo de carga a través de YARP (Yet Another Reverse Proxy).</p>
+
+  <h2>1. Arquitectura de la Solución</h2>
+  <ul>
+    <li><strong>AccountService</strong> (puerto 6001): Servicio original con CRUD de cuentas y endpoint de balanceo.</li>
+    <li><strong>AccountServiceReplica</strong> (puerto 6003): Servicio réplica con la misma API pero identificada como <em>"Replica"</em>.</li>
+    <li><strong>Proxy YARP</strong> (puerto 5000): Expone un punto de entrada único con balanceo entre las instancias.</li>
+  </ul>
+
+  <h2>2. Endpoints Disponibles</h2>
+  <h3>2.1 CRUD de Cuentas</h3>
+  <p>Expuestos en <code>http://localhost:5000/api/accounts</code> con balanceo entre <em>Original</em> y <em>Replica</em>.</p>
+  <ul>
+    <li><code>GET /api/accounts</code> → Lista todas las cuentas</li>
+    <li><code>GET /api/accounts/{id}</code> → Obtiene una cuenta por ID</li>
+    <li><code>POST /api/accounts</code> → Crea una nueva cuenta</li>
+    <li><code>PUT /api/accounts/{id}</code> → Actualiza una cuenta existente</li>
+    <li><code>DELETE /api/accounts/{id}</code> → Elimina una cuenta</li>
+  </ul>
+
+  <div class="box">
+    <strong>Ejemplo de respuesta (GET /api/accounts):</strong>
+    <pre>{
+  "source": "Original",
+  "timestamp": "2025-09-30T12:34:56",
+  "data": [
+    { "id": 1, "owner": "Alice", "balance": 1200 },
+    { "id": 2, "owner": "Bob", "balance": 800 }
+  ]
+}</pre>
+  </div>
+
+  <h3>2.2 Endpoint de Balanceo</h3>
+  <p>Disponible en <code>http://localhost:5000/api/balanceo</code>, utilizado únicamente para comprobar la distribución de peticiones entre instancias.</p>
+  <div class="box">
+    <strong>Ejemplo de respuesta desde el servicio Original:</strong>
+    <pre>{
+  "source": "Original",
+  "timestamp": "2025-09-30T12:35:10",
+  "message": "Respuesta desde AccountService (Minimal API)"
+}</pre>
+  </div>
+  <div class="box">
+    <strong>Ejemplo de respuesta desde la Réplica:</strong>
+    <pre>{
+  "source": "Replica",
+  "timestamp": "2025-09-30T12:35:15",
+  "message": "Respuesta desde AccountServiceReplica (Minimal API)"
+}</pre>
+  </div>
+
+  <h2>3. Flujo de Peticiones</h2>
+  <ol>
+    <li>El cliente envía una petición al proxy en <code>http://localhost:5000</code>.</li>
+    <li>YARP decide si enruta la petición a la instancia <em>Original</em> o <em>Replica</em>.</li>
+    <li>El servicio responde incluyendo un campo <code>source</code> que indica el origen de la respuesta.</li>
+  </ol>
+
+  <h2>4. Beneficios de la Solución</h2>
+  <ul>
+    <li><strong>Balanceo de carga:</strong> distribuye las peticiones entre instancias.</li>
+    <li><strong>Alta disponibilidad:</strong> si una instancia falla, la otra sigue respondiendo.</li>
+    <li><strong>Escalabilidad:</strong> es posible añadir más réplicas fácilmente en el cluster YARP.</li>
+    <li><strong>Transparencia:</strong> el cliente siempre usa la misma URL del proxy.</li>
+  </ul>
+
+  <h2>5. Ejecución de Servicios</h2>
+  <ul>
+    <li>Ejecutar <code>AccountService</code> en <code>http://localhost:6001</code>.</li>
+    <li>Ejecutar <code>AccountServiceReplica</code> en <code>http://localhost:6003</code>.</li>
+    <li>Ejecutar el proxy YARP en <code>http://localhost:5000</code>.</li>
+  </ul>
+
+  <p>De esta forma, todas las peticiones CRUD y de prueba de balanceo pasan por el proxy y se distribuyen entre ambas instancias.</p>
+</body>
+</html>
+```
