@@ -1,20 +1,16 @@
-# Etapa de build
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+# Usa la imagen oficial de .NET 8 SDK para compilar
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copiar todo el código
+# Copiar todo
 COPY . .
 
 # Restaurar dependencias y compilar ApiGateway
 RUN dotnet restore "ApiGateway/ApiGateway.csproj"
 RUN dotnet publish "ApiGateway/ApiGateway.csproj" -c Release -o /app/publish
 
-# Etapa de runtime
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS runtime
+# Imagen final con ASP.NET Core 8 runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-
-# Copiar lo publicado desde la etapa build
 COPY --from=build /app/publish .
-
-# Comando de inicio
 ENTRYPOINT ["dotnet", "ApiGateway.dll"]
