@@ -1,16 +1,16 @@
+# Usa imagen .NET 8 para compilar
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-
 COPY . .
 
+# Restaurar dependencias y compilar el proyecto de réplica
 RUN dotnet restore "AccountServiceReplica/AccountServiceReplica.csproj"
 RUN dotnet publish "AccountServiceReplica/AccountServiceReplica.csproj" -c Release -o /app/publish
 
+# Imagen final runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-
-ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
 EXPOSE 5000
-
+ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
 ENTRYPOINT ["dotnet", "AccountServiceReplica.dll"]
