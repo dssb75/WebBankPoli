@@ -7,14 +7,14 @@ builder.Services.AddReverseProxy()
     .LoadFromMemory(
         new[]
         {
-            // CRUD (balanceado entre original y réplica)
+            // CRUD (balanceado entre original y rÃ©plica)
             new RouteConfig
             {
                 RouteId = "account_route",
                 ClusterId = "account_cluster",
                 Match = new() { Path = "/api/accounts/{**catch-all}" }
             },
-            // Balanceo de prueba (endpoint específico)
+            // Balanceo de prueba (endpoint especÃ­fico)
             new RouteConfig
             {
                 RouteId = "balanceo_route",
@@ -48,4 +48,6 @@ builder.Services.AddReverseProxy()
 
 var app = builder.Build();
 app.MapReverseProxy();
-app.Run("http://localhost:5000");
+
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Run($"http://0.0.0.0:{port}");
