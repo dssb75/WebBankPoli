@@ -1,23 +1,24 @@
-# Usa la imagen oficial de .NET 8 SDK para compilar
+# Etapa de compilación: usa la imagen oficial de .NET 8 SDK
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copiar todo
+# Copiar todo el código
 COPY . .
 
 # Restaurar dependencias y compilar ApiGateway
 RUN dotnet restore "ApiGateway/ApiGateway.csproj"
 RUN dotnet publish "ApiGateway/ApiGateway.csproj" -c Release -o /app/publish
 
-# Imagen final con ASP.NET Core 8 runtime
+# Etapa final: imagen ligera con ASP.NET Core 8 runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "ApiGateway.dll"]
 
-# Exponer el puerto
+# Exponer puerto 5000 (para local/dev)
 EXPOSE 5000
 
-# Ejecutar en 0.0.0.0 usando la variable PORT
+# Importante para Render: que escuche en 0.0.0.0 y use la variable PORT
 ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
+
+# Ejecutar la app
 ENTRYPOINT ["dotnet", "ApiGateway.dll"]
