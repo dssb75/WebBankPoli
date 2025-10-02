@@ -1,0 +1,21 @@
+# Usa la imagen oficial de .NET 8 SDK para compilar
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copiar todo el código fuente
+COPY . .
+
+# Restaurar dependencias y compilar
+RUN dotnet restore "AccountService/AccountService.csproj"
+RUN dotnet publish "AccountService/AccountService.csproj" -c Release -o /app/publish
+
+# Imagen final con ASP.NET Core 8 runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+
+# Render necesita que la app escuche en 0.0.0.0 y puerto dinámico
+ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
+EXPOSE 5000
+
+ENTRYPOINT ["dotnet", "AccountService.dll"]
