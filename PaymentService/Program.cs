@@ -13,4 +13,6 @@ app.MapGet("/payments/status", () =>
 
 
 // Escucha en el puerto 6002
-app.Run("http://localhost:6002");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "6002";
+app.Run($"http://0.0.0.0:{port}");
+
