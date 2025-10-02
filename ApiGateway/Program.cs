@@ -16,28 +16,30 @@ builder.Services.AddReverseProxy()
                 ClusterId = "account_cluster",
                 Match = new() { Path = "/api/accounts/{**catch-all}" }
             },
-            // Balanceo de prueba (endpoint específico)
+            // Balanceo de prueba
             new RouteConfig
             {
                 RouteId = "balanceo_route",
                 ClusterId = "balanceo_cluster",
                 Match = new() { Path = "/api/balanceo/{**catch-all}" }
+            },
+            // CRUD en PaymentService
+            new RouteConfig
+            {
+                RouteId = "payment_route",
+                ClusterId = "payment_cluster",
+                Match = new() { Path = "/api/payments/{**catch-all}" }
             }
         },
         // Clusters
         new[]
         {
-            // Balanceo CRUD
+            // Balanceo CRUD (AccountService + Replica)
             new ClusterConfig
             {
                 ClusterId = "account_cluster",
                 Destinations = new Dictionary<string, DestinationConfig>
                 {
-                    // 🔹 En local
-                    // { "instance1", new DestinationConfig { Address = "http://localhost:6001/" } },
-                    // { "instance2", new DestinationConfig { Address = "http://localhost:6003/" } }
-
-                    // 🔹 En Render (cambia estas URLs al crear los servicios)
                     { "instance1", new DestinationConfig { Address = "https://account-service.onrender.com/" } },
                     { "instance2", new DestinationConfig { Address = "https://account-replica.onrender.com/" } }
                 }
@@ -50,6 +52,15 @@ builder.Services.AddReverseProxy()
                 {
                     { "instance1", new DestinationConfig { Address = "https://account-service.onrender.com/" } },
                     { "instance2", new DestinationConfig { Address = "https://account-replica.onrender.com/" } }
+                }
+            },
+            // CRUD PaymentService
+            new ClusterConfig
+            {
+                ClusterId = "payment_cluster",
+                Destinations = new Dictionary<string, DestinationConfig>
+                {
+                    { "payment1", new DestinationConfig { Address = "https://payment-service.onrender.com/" } }
                 }
             }
         });
