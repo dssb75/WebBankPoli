@@ -1,13 +1,13 @@
-# Usa imagen .NET 8 para compilar
+# Usa .NET 8 para compilar
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY . .
 
-# Restaurar dependencias y compilar el proyecto de réplica
+# Restaurar dependencias y compilar la réplica
 RUN dotnet restore "AccountServiceReplica/AccountServiceReplica.csproj"
 RUN dotnet publish "AccountServiceReplica/AccountServiceReplica.csproj" -c Release -o /app/publish
 
-# Imagen final runtime
+# Imagen final con runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
