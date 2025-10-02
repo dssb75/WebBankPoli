@@ -3,11 +3,13 @@ using Yarp.ReverseProxy.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configuración de proxy
 builder.Services.AddReverseProxy()
     .LoadFromMemory(
+        // Rutas
         new[]
         {
-            // CRUD (balanceado entre original y réplica)
+            // CRUD en AccountService (balanceado entre original y réplica)
             new RouteConfig
             {
                 RouteId = "account_route",
@@ -22,16 +24,22 @@ builder.Services.AddReverseProxy()
                 Match = new() { Path = "/api/balanceo/{**catch-all}" }
             }
         },
+        // Clusters
         new[]
         {
-            // Balanceo para CRUD
+            // Balanceo CRUD
             new ClusterConfig
             {
                 ClusterId = "account_cluster",
                 Destinations = new Dictionary<string, DestinationConfig>
                 {
-                    { "instance1", new DestinationConfig { Address = "http://localhost:6001/" } },
-                    { "instance2", new DestinationConfig { Address = "http://localhost:6003/" } }
+                    // 🔹 En local
+                    // { "instance1", new DestinationConfig { Address = "http://localhost:6001/" } },
+                    // { "instance2", new DestinationConfig { Address = "http://localhost:6003/" } }
+
+                    // 🔹 En Render (cambia estas URLs al crear los servicios)
+                    { "instance1", new DestinationConfig { Address = "https://account-service.onrender.com/" } },
+                    { "instance2", new DestinationConfig { Address = "https://account-replica.onrender.com/" } }
                 }
             },
             // Balanceo para endpoint de prueba
@@ -40,8 +48,8 @@ builder.Services.AddReverseProxy()
                 ClusterId = "balanceo_cluster",
                 Destinations = new Dictionary<string, DestinationConfig>
                 {
-                    { "instance1", new DestinationConfig { Address = "http://localhost:6001/" } },
-                    { "instance2", new DestinationConfig { Address = "http://localhost:6003/" } }
+                    { "instance1", new DestinationConfig { Address = "https://account-service.onrender.com/" } },
+                    { "instance2", new DestinationConfig { Address = "https://account-replica.onrender.com/" } }
                 }
             }
         });
@@ -49,5 +57,6 @@ builder.Services.AddReverseProxy()
 var app = builder.Build();
 app.MapReverseProxy();
 
+// Usa el puerto asignado por Render, o 5000 en local
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
 app.Run($"http://0.0.0.0:{port}");
