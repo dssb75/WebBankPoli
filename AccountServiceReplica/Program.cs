@@ -75,5 +75,6 @@ app.MapGet("/api/balanceo", () =>
     });
 });
 
-// Puerto distinto al original
-app.Run("http://localhost:6003");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "6003";
+app.Run($"http://0.0.0.0:{port}");
+
